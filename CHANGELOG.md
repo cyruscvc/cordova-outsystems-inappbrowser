@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/OutSystems/cordova-outsystems-inappbrowser/compare/2.0.1...2.0.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* **android:** bump ioninappbrowser-android to 2.0.1 for Android 18 URI grant fix ([#74](https://github.com/OutSystems/cordova-outsystems-inappbrowser/issues/74)) ([0373fbd](https://github.com/OutSystems/cordova-outsystems-inappbrowser/commit/0373fbd148f228a38e98a6ba5855620bdf39ace7))
+
 ## [2.0.1](https://github.com/OutSystems/cordova-outsystems-inappbrowser/compare/2.0.0...2.0.1) (2026-06-19)
 
 ## 2.0.0
