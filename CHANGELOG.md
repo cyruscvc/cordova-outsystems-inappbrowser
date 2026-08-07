@@ -1,3 +1,10 @@
+## [2.0.3](https://github.com/OutSystems/cordova-outsystems-inappbrowser/compare/2.0.2...2.0.3) (2026-08-07)
+
+
+### Bug Fixes
+
+* **android:** bump ioninappbrowser-android to 2.0.2 for background close fix ([#75](https://github.com/OutSystems/cordova-outsystems-inappbrowser/issues/75)) ([005054a](https://github.com/OutSystems/cordova-outsystems-inappbrowser/commit/005054a415a898d8c2cec834640a8ce9d8b219e0))
+
 ## [2.0.2](https://github.com/OutSystems/cordova-outsystems-inappbrowser/compare/2.0.1...2.0.2) (2026-07-08)
 
 
