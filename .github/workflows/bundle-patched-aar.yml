@@ -1,0 +1,72 @@
+name: Bundle patched Android AAR
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - fix/mixed-mime-upload
+    paths:
+      - .github/workflows/bundle-patched-aar.yml
+      - src/android/build.gradle
+      - plugin.xml
+      - package.json
+
+permissions:
+  contents: write
+
+jobs:
+  bundle-aar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Cordova plugin
+        uses: actions/checkout@v4
+
+      - name: Check out patched Android library
+        uses: actions/checkout@v4
+        with:
+          repository: cyruscvc/OSInAppBrowserLib-Android
+          ref: fix/mixed-mime-upload
+          path: .native-lib
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android API 36
+        run: sdkmanager "platforms;android-36"
+
+      - name: Build patched release AAR
+        working-directory: .native-lib
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean assembleRelease
+
+      - name: Copy AAR into Cordova plugin
+        run: |
+          mkdir -p src/android/libs
+          cp .native-lib/build/outputs/aar/OSInAppBrowserLib-release.aar \
+            src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.aar
+          test -s src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.aar
+
+      - name: Commit AAR and create stable tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.aar
+
+          if ! git diff --cached --quiet; then
+            git commit -m "build(android): bundle patched mixed-MIME AAR"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+          if ! git ls-remote --exit-code --tags origin refs/tags/1.6.3-mixedmime.1; then
+            git tag 1.6.3-mixedmime.1
+            git push origin refs/tags/1.6.3-mixedmime.1
+          fi
+
