@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## 1.6.3-mixedmime.2
+
+### Fixes
+
+- Android: Use the system document picker for mixed MIME types.
+- Android: Correctly parse multiple selected documents.
+
+### Diagnostics
+
+- Add a `mixedmime.2` chooser title and native log marker for device verification.
+
 ## 1.6.3-mixedmime.1
 
 ### Fixes
