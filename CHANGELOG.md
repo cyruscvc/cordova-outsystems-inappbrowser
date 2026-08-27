@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## 1.6.3-mixedmime.1
+
+### Fixes
+
+- Android: Preserve mixed image and document MIME types in the `OpenInWebView` file chooser.
+
+### Notes
+
+- Temporary fork based on Cordova plugin `1.6.3` and Android native library `1.6.1`.
+
 ## 1.6.3
 
 ### Fixes
