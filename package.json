@@ -1,6 +1,6 @@
 {
   "name": "com.outsystems.plugins.inappbrowser",
-  "version": "1.6.3-mixedmime.1",
+  "version": "1.6.3-mixedmime.2",
   "description": "InAppBrowser OutSystems Cordova Plugin",
   "keywords": [
     "ecosystem:cordova",
