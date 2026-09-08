@@ -1,4 +1,3 @@
-import OSInAppBrowserLib
 
 class OSInAppBrowserInputArgumentsSimpleModel: Decodable {
     let url: String

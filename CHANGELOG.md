@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## 1.6.3-mixedmime.2-teams.1
+
+- iOS: Open main-page `msteams://` links in Microsoft Teams while retaining the WebView.
+- iOS: Declare the Teams query scheme and show an alert if Teams cannot open the link.
+- iOS: Preserve the WebView event callback when an external app launch fails.
+- iOS: Bundle OSInAppBrowserLib 2.3.1 Swift source instead of the prebuilt CocoaPod.
+- Android: Retain the existing mixedmime.2 AAR and behavior.
+
 ## 1.6.3-mixedmime.2
 
 ### Fixes
