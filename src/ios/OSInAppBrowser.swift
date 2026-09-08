@@ -1,4 +1,3 @@
-import OSInAppBrowserLib
 import UIKit
 
 typealias OSInAppBrowserEngine = OSIABEngine<OSIABApplicationRouterAdapter, OSIABSafariViewControllerRouterAdapter, OSIABWebViewRouterAdapter>
@@ -72,7 +71,11 @@ class OSInAppBrowser: CDVPlugin {
                         self?.viewController.dismiss(animated: true)
                     },
                     onDelegateURL: { [weak self] url in
-                        self?.delegateExternalBrowser(url, command.callbackId)
+                        if url.scheme?.lowercased() == "msteams" {
+                            self?.openTeams(url)
+                        } else {
+                            self?.delegateExternalBrowser(url, command.callbackId)
+                        }
                     },
                     onDelegateAlertController: { [weak self] alert in
                         self?.viewController.presentedViewController?.show(alert, sender: nil)
@@ -116,6 +119,36 @@ class OSInAppBrowser: CDVPlugin {
 }
 
 private extension OSInAppBrowser {
+    // An external app launch is not a browser lifecycle event. In particular,
+    // a failed launch must not terminate the WebView's Cordova callback.
+    func openTeams(_ url: URL) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            guard UIApplication.shared.canOpenURL(url) else {
+                self.showTeamsOpenError()
+                return
+            }
+            UIApplication.shared.open(url, options: [:]) { [weak self] success in
+                if !success {
+                    DispatchQueue.main.async { self?.showTeamsOpenError() }
+                }
+            }
+        }
+    }
+
+    func showTeamsOpenError() {
+        let alert = UIAlertController(
+            title: "Unable to open Teams",
+            message: "Make sure Microsoft Teams is installed and that this link is valid, then try again.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        guard let browser = openedViewController ?? viewController else { return }
+        let presenter = browser.presentedViewController ?? browser
+        guard presenter.viewIfLoaded?.window != nil else { return }
+        presenter.present(alert, animated: true)
+    }
+
     func delegateExternalBrowser(_ url: URL, _ callbackId: String) {
         DispatchQueue.main.async {
             self.plugin?.openExternalBrowser(url, { [weak self] success in

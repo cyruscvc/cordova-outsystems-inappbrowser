@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="com.outsystems.plugins.inappbrowser" version="1.6.3-mixedmime.2" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="com.outsystems.plugins.inappbrowser" version="1.6.3-mixedmime.2-teams.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>cordova-outsystems-inappbrowser</name>
     <description>InAppBrowser OutSystems Cordova Plugin</description>
     <author>OutSystems Inc</author>
-    
+
     <js-module name="OSInAppBrowser" src="dist/plugin.js">
         <clobbers target="cordova.plugins.OSInAppBrowser" />
     </js-module>
@@ -19,12 +19,12 @@
             <preference name="GradlePluginKotlinCodeStyle" value="official" />
             <preference name="AndroidXEnabled" value="true"/>
         </config-file>
-        
+
         <config-file parent="/*" target="AndroidManifest.xml" />
         <source-file src="src/android/OSInAppBrowser.kt" target-dir="app/src/main/kotlin/com/outsystems/plugins/inappbrowser/osinappbrowser" />
         <source-file src="src/android/OSInAppBrowserError.kt" target-dir="app/src/main/kotlin/com/outsystems/plugins/inappbrowser/osinappbrowser" />
         <source-file src="src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.2.aar" target-dir="app/libs" />
-        
+
         <framework src="src/android/build.gradle" custom="true" type="gradleReference" />
         <source-file src="src/android/OSInAppBrowserSystemBrowserInputArguments.kt" target-dir="app/src/main/kotlin/com/outsystems/plugins/inappbrowser/osinappbrowser" />
         <source-file src="src/android/OSInAppBrowserWebViewInputArguments.kt" target-dir="app/src/main/kotlin/com/outsystems/plugins/inappbrowser/osinappbrowser" />
@@ -41,13 +41,36 @@
         <source-file src="src/ios/OSInAppBrowserError.swift" />
         <source-file src="src/ios/OSInAppBrowserInputArgumentsModel.swift" />
 
-        <podspec>
-            <config>
-                <source url="https://cdn.cocoapods.org/"/>
-            </config>
-            <pods use-frameworks="true">
-                <pod name="OSInAppBrowserLib" spec="2.3.1" />
-            </pods>
-        </podspec> 
+        <config-file target="*-Info.plist" parent="LSApplicationQueriesSchemes">
+            <array>
+                <string>msteams</string>
+            </array>
+        </config-file>
+
+        <!-- Bundled upstream 2.3.1 source with the Teams navigation patch. -->
+        <source-file src="src/ios/OSInAppBrowserLib/Models/OSIABAnimationEffect.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/Models/OSIABDismissStyle.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/Models/OSIABToolbarPosition.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/Models/OSIABViewStyle.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/Models/OSIABWebViewConfigurationModel.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/Models/OSIABWebViewUIModel.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/Models/Options/OSIABOptions.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/Models/Options/OSIABSystemBrowserOptions.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/Models/Options/OSIABWebViewOptions.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/OSIABCacheManager.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/OSIABEngine.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/OSIABRouter.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/RouterAdapters/OSIABApplicationRouterAdapter.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/RouterAdapters/OSIABSafariViewControllerRouterAdapter.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/RouterAdapters/OSIABWebViewRouterAdapter.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/OSIABWebViewCallbackHandler.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/OSIABWebViewModel.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/Views/Modifiers/OSIABViewModifiers.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/Views/OSIABErrorView.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/Views/OSIABNavigationView.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/Views/OSIABWebView.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/Views/OSIABWebView13WrapperView.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/Views/OSIABWebViewRepresentable.swift" />
+        <source-file src="src/ios/OSInAppBrowserLib/WebView/Views/OSIABWebViewWrapperView.swift" />
     </platform>
 </plugin>

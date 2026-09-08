@@ -1,0 +1,50 @@
+name: Validate iOS Teams plugin
+
+on:
+  push:
+    branches: [fix/ios-teams-links]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile-ios:
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Cordova tooling
+        run: npm install --global cordova@12.0.0
+      - name: Install plugin into a clean iOS app
+        shell: bash
+        run: |
+          cordova create "$RUNNER_TEMP/TeamsSmoke" com.example.teamssmoke TeamsSmoke
+          cd "$RUNNER_TEMP/TeamsSmoke"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('config.xml')
+          p.write_text(p.read_text().replace('</widget>', '<preference name="deployment-target" value="13.0" /></widget>'))
+          PY
+          cordova platform add ios@7.1.1
+          cordova plugin add "$GITHUB_WORKSPACE"
+          cordova prepare ios
+      - name: Verify scheme and compile for iOS Simulator
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/TeamsSmoke"
+          /usr/libexec/PlistBuddy -c 'Print :LSApplicationQueriesSchemes' platforms/ios/TeamsSmoke/TeamsSmoke-Info.plist | grep -F msteams
+          set -o pipefail
+          xcodebuild -workspace platforms/ios/TeamsSmoke.xcworkspace \
+            -scheme TeamsSmoke -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/TeamsDerivedData" \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | tee "$RUNNER_TEMP/teams-ios-build.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-teams-build-log
+          path: ${{ runner.temp }}/teams-ios-build.log
