@@ -38,7 +38,7 @@ jobs:
           cd "$RUNNER_TEMP/TeamsSmoke"
           /usr/libexec/PlistBuddy -c 'Print :LSApplicationQueriesSchemes' platforms/ios/TeamsSmoke/TeamsSmoke-Info.plist | grep -F msteams
           set -o pipefail
-          xcodebuild -project platforms/ios/TeamsSmoke.xcodeproj \
+          xcodebuild -workspace platforms/ios/TeamsSmoke.xcworkspace \
             -scheme TeamsSmoke -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/TeamsDerivedData" \
