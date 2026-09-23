@@ -55,14 +55,14 @@ jobs:
         run: |
           mkdir -p src/android/libs
           cp .native-lib/build/outputs/aar/OSInAppBrowserLib-release.aar \
-            src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.2.aar
-          test -s src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.2.aar
+            src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.3.aar
+          test -s src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.3.aar
 
       - name: Commit AAR and create stable tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.2.aar
+          git add src/android/libs/ioninappbrowser-android-1.6.1-mixedmime.3.aar
 
           if ! git diff --cached --quiet; then
             git commit -m "build(android): bundle patched mixed-MIME AAR"
@@ -70,8 +70,8 @@ jobs:
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
 
-          if ! git ls-remote --exit-code --tags origin refs/tags/1.6.3-mixedmime.2; then
-            git tag 1.6.3-mixedmime.2
-            git push origin refs/tags/1.6.3-mixedmime.2
+          if ! git ls-remote --exit-code --tags origin refs/tags/1.6.3-mixedmime.3; then
+            git tag 1.6.3-mixedmime.3
+            git push origin refs/tags/1.6.3-mixedmime.3
           fi
 
