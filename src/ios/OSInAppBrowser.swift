@@ -2,7 +2,6 @@
 import Cordova
 #endif
 
-import OSInAppBrowserLib
 import UIKit
 
 typealias OSInAppBrowserEngine = OSIABEngine<OSIABApplicationRouterAdapter, OSIABSafariViewControllerRouterAdapter, OSIABWebViewRouterAdapter>

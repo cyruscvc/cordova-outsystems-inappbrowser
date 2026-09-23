@@ -1,3 +1,16 @@
+## 2.1.1-downloadfix.1
+
+### Fixes
+
+- Android: Download authenticated HTTP/HTTPS non-PDF attachments from `OpenInWebView` using `DownloadManager`, preserving WebView cookies, user agent, MIME type, and filename.
+- iOS: Download attachment, Excel, Word, CSV, ZIP, and other non-previewable responses using `WKDownloadDelegate`, then present the native share/Files sheet.
+- Preserve the official 2.1.1 mixed-MIME upload fix and the official Android 2.0.3 and iOS 2.3.2 baselines.
+
+### Limitations
+
+- Android `blob:` and `data:` URLs are reported as unsupported because they cannot be transferred safely to `DownloadManager`.
+- The iOS 13/14.0 fallback replays the download as an authenticated GET request. Modern iOS versions retain the original request through `WKDownload`.
+
 ## [2.1.1](https://github.com/OutSystems/cordova-outsystems-inappbrowser/compare/2.1.0...2.1.1) (2026-09-18)
 
 
