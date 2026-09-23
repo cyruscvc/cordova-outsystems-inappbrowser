@@ -21,6 +21,9 @@ concurrency:
 jobs:
   bundle-aar:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
       - name: Check out Cordova plugin
@@ -40,7 +43,7 @@ jobs:
           java-version: "17"
 
       - name: Install Android API 36
-        run: sdkmanager "platforms;android-36"
+        run: /usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager "platforms;android-36"
 
       - name: Build patched release AAR
         working-directory: .native-lib
