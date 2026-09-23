@@ -91,6 +91,8 @@ jobs:
             -scheme IABDownload \
             -sdk iphonesimulator \
             -configuration Debug \
+            SWIFT_VERSION=5.0 \
+            IPHONEOS_DEPLOYMENT_TARGET=13.0 \
             CODE_SIGNING_ALLOWED=NO \
             build
 
