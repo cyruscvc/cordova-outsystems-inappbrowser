@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## 1.6.3-mixedmime.3
+
+### Fixes
+
+- Android: Launch mixed image/document requests directly with `ACTION_OPEN_DOCUMENT` so camera/image initial intents cannot force an image-only picker.
+- Android: Keep `*/*` as the base type and preserve the normalized allowlist in `Intent.EXTRA_MIME_TYPES`.
+
+### Diagnostics
+
+- Show a brief `Mixed file picker • mixedmime.3` marker when the patched mixed picker path is used.
+
+### Compatibility
+
+- Mixed upload controls no longer include the camera shortcut. Image-only controls retain the existing camera behavior.
+
 ## 1.6.3-mixedmime.2
 
 ### Fixes
