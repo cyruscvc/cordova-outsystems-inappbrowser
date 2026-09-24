@@ -1,6 +1,6 @@
 {
   "name": "com.outsystems.plugins.inappbrowser",
-  "version": "2.1.1-downloadfix.1",
+  "version": "2.1.1-mapp.1",
   "description": "InAppBrowser OutSystems Cordova Plugin",
   "keywords": [
     "ecosystem:cordova",

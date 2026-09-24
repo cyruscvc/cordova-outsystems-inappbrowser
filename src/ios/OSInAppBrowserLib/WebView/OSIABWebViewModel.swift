@@ -186,11 +186,8 @@ class OSIABWebViewModel: NSObject, ObservableObject {
         callbackHandler.onBrowserClosed(false)
     }
     private func shouldDownload(_ navigationResponse: WKNavigationResponse) -> Bool {
-        guard let response = navigationResponse.response as? HTTPURLResponse else {
-            return !navigationResponse.canShowMIMEType
-        }
-
-        let contentDisposition = response.value(forHTTPHeaderField: "Content-Disposition")?
+        let response = navigationResponse.response
+        let contentDisposition = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Content-Disposition")?
             .lowercased() ?? ""
         if contentDisposition.contains("attachment") {
             return true
@@ -198,6 +195,7 @@ class OSIABWebViewModel: NSObject, ObservableObject {
 
         let mimeType = response.mimeType?.lowercased() ?? ""
         let attachmentMimeTypes: Set<String> = [
+            "application/pdf",
             "application/octet-stream",
             "application/zip",
             "application/x-zip-compressed",
@@ -270,34 +268,16 @@ class OSIABWebViewModel: NSObject, ObservableObject {
     }
 
     private func downloadWithoutWKDownload(_ response: URLResponse) {
-        guard let url = response.url else { return }
-        let suggestedFilename = response.suggestedFilename ?? url.lastPathComponent
-        let destination = temporaryDownloadURL(for: suggestedFilename)
+        // Replaying as GET loses POST bodies and can leak cookies on redirects.
+        // Use WebKit's original authenticated request on supported iOS versions.
+        showDownloadError("Saving files requires iOS 14.5 or newer.")
+    }
 
-        webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { [weak self] cookies in
+    private func showDownloadError(_ message: String) {
+        DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            var request = URLRequest(url: url)
-            HTTPCookie.requestHeaderFields(with: cookies).forEach {
-                request.setValue($1, forHTTPHeaderField: $0)
-            }
-            if let userAgent = self.webView.customUserAgent, !userAgent.isEmpty {
-                request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-            }
-
-            URLSession.shared.downloadTask(with: request) { [weak self] temporaryURL, _, error in
-                guard let self else { return }
-                guard error == nil, let temporaryURL else {
-                    print("WebView download failed: \(error?.localizedDescription ?? "unknown error")")
-                    return
-                }
-                do {
-                    try? FileManager.default.removeItem(at: destination)
-                    try FileManager.default.moveItem(at: temporaryURL, to: destination)
-                    self.presentDownloadedFile(destination)
-                } catch {
-                    print("Unable to store WebView download: \(error.localizedDescription)")
-                }
-            }.resume()
+            let alert = self.createAlertController(withBodyText: message, okButtonHandler: { _ in })
+            self.callbackHandler.onDelegateAlertController(alert)
         }
     }
 
@@ -308,6 +288,16 @@ extension OSIABWebViewModel: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         guard let url = navigationAction.request.url else { return decisionHandler(.cancel) }
+
+        // Preserve the exact URL and the current WebView/session. Ignore child frames.
+        if url.scheme?.lowercased() == "msteams" {
+            if navigationAction.sourceFrame.isMainFrame &&
+                navigationAction.targetFrame?.isMainFrame != false {
+                callbackHandler.onDelegateURL(url)
+            }
+            decisionHandler(.cancel)
+            return
+        }
 
         if #available(iOS 14.5, *), navigationAction.shouldPerformDownload {
             decisionHandler(.download)
@@ -424,6 +414,7 @@ extension OSIABWebViewModel: WKDownloadDelegate {
             try? FileManager.default.removeItem(at: destination)
         }
         print("WebView download failed: \(error.localizedDescription)")
+        showDownloadError("Unable to download the file. \(error.localizedDescription)")
     }
 }
 
@@ -457,7 +448,11 @@ extension OSIABWebViewModel: WKUIDelegate {
     
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if navigationAction.targetFrame == nil, let url = navigationAction.request.url {
-            webView.load(URLRequest(url: url))
+            if url.scheme?.lowercased() == "msteams" {
+                if navigationAction.sourceFrame.isMainFrame { callbackHandler.onDelegateURL(url) }
+            } else {
+                webView.load(navigationAction.request)
+            }
         }
         return nil
     }

@@ -13,15 +13,13 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/apache/cordova-ios.git", branch: "master"),
-        .package(url: "https://github.com/OutSystems/OSInAppBrowserLib-iOS.git", exact: "2.3.2")
+        .package(url: "https://github.com/apache/cordova-ios.git", branch: "master")
     ],
     targets: [
         .target(
             name: "OSInAppBrowserPlugin",
             dependencies: [
-                .product(name: "Cordova", package: "cordova-ios"),
-                .product(name: "OSInAppBrowserLib", package: "OSInAppBrowserLib-iOS")
+                .product(name: "Cordova", package: "cordova-ios")
             ],
             path: "src/ios"
         )
