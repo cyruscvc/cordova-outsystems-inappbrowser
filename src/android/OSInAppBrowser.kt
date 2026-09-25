@@ -1,5 +1,7 @@
 package com.outsystems.plugins.inappbrowser.osinappbrowser
 
+import android.content.Intent
+import android.net.Uri
 import com.google.gson.Gson
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEngine
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABAnimation
@@ -66,6 +68,7 @@ class OSInAppBrowser: CordovaPlugin() {
             val argumentsDictionary = args.getJSONObject(0)
             url = argumentsDictionary.getString("url")
             if(url.isNullOrEmpty()) throw IllegalArgumentException()
+            if (routeInitialTeams(url, callbackContext)) return
         }
         catch (e: Exception) {
             sendError(callbackContext, OSInAppBrowserError.InputArgumentsIssue(OSInAppBrowserTarget.EXTERNAL_BROWSER))
@@ -101,6 +104,7 @@ class OSInAppBrowser: CordovaPlugin() {
             val argumentsDictionary = args.getJSONObject(0)
             url = argumentsDictionary.getString("url")
             if(url.isNullOrEmpty()) throw IllegalArgumentException()
+            if (routeInitialTeams(url, callbackContext)) return
             customTabsOptions = buildCustomTabsOptions(argumentsDictionary.optString("options", "{}"))
         }
         catch (e: Exception) {
@@ -152,6 +156,7 @@ class OSInAppBrowser: CordovaPlugin() {
             val argumentsDictionary = args.getJSONObject(0)
             url = argumentsDictionary.getString("url")
             if(url.isNullOrEmpty()) throw IllegalArgumentException()
+            if (routeInitialTeams(url, callbackContext)) return
             webViewOptions = buildWebViewOptions(argumentsDictionary.optString("options", "{}"))
             if (argumentsDictionary.has("customHeaders")) {
                 customHeaders = argumentsDictionary.getJSONObject("customHeaders").let { jsObject ->
@@ -279,13 +284,44 @@ class OSInAppBrowser: CordovaPlugin() {
      * @param callbackContext CallbackContext to send the result to
      * @param event Event to be sent (SUCCESS, BROWSER_PAGE_LOADED, or BROWSER_FINISHED)
      */
-    private fun sendSuccess(callbackContext: CallbackContext, event: OSIABEventType, data: Any? = null) {
+    private fun sendSuccess(callbackContext: CallbackContext, event: OSIABEventType, data: Any? = null, keepCallback: Boolean = true) {
         val dataToSend: Map<String, Any?> = mapOf("eventType" to event.value, "data" to data);
         val jsonString = gson.toJson(dataToSend)
 
         val pluginResult = PluginResult(PluginResult.Status.OK, jsonString)
-        pluginResult.keepCallback = true
+        pluginResult.keepCallback = keepCallback
         callbackContext.sendPluginResult(pluginResult)
+    }
+
+    /** App links are launch requests, not pages. Do not close the active WebView. */
+    private fun routeInitialTeams(url: String, callbackContext: CallbackContext): Boolean {
+        if (!url.startsWith("msteams:", ignoreCase = true) &&
+            !url.startsWith("intent://teams.microsoft.com/", ignoreCase = true)) return false
+        cordova.activity.runOnUiThread {
+            try {
+                val data = if (url.startsWith("intent:", ignoreCase = true)) {
+                    val parsed = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                    require(parsed.`package` == "com.microsoft.teams")
+                    require(parsed.data?.scheme.equals("https", ignoreCase = true))
+                    parsed.data ?: throw IllegalArgumentException("Missing Teams destination")
+                } else {
+                    Uri.parse(url)
+                }
+                require(data.host.equals("teams.microsoft.com", ignoreCase = true))
+                // Use the parsed URI intact. Discard caller-supplied components,
+                // selectors, flags and extras from the Android intent envelope.
+                val launch = Intent(Intent.ACTION_VIEW, data).apply {
+                    addCategory(Intent.CATEGORY_BROWSABLE)
+                    setPackage("com.microsoft.teams")
+                }
+                cordova.activity.startActivity(launch)
+                sendSuccess(callbackContext, OSIABEventType.SUCCESS, keepCallback = false)
+            } catch (_: Exception) {
+                sendError(callbackContext,
+                    OSInAppBrowserError.OpenFailed("Microsoft Teams", OSInAppBrowserTarget.EXTERNAL_BROWSER))
+            }
+        }
+        return true
     }
 
     /**

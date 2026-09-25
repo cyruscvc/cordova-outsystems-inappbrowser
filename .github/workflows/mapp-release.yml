@@ -1,27 +1,18 @@
 name: Validate and tag consolidated M App plugin
-
 on:
   workflow_dispatch:
   push:
     branches: [release/mapp-2.1.1]
-
 permissions:
   contents: read
-
 concurrency:
   group: mapp-plugin-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: cyruscvc/OSInAppBrowserLib-Android
-          ref: 714129011462a09c40354117aaa7b71148d48787
-          path: .native-android
       - uses: actions/setup-java@v4
         with:
           distribution: zulu
@@ -32,19 +23,12 @@ jobs:
       - uses: android-actions/setup-android@v4
         with:
           packages: ''
-      - name: Install SDKs
-        run: sdkmanager 'platforms;android-35' 'platforms;android-36' 'build-tools;35.0.0'
-      - name: Test bridge and build native library
-        working-directory: .native-android
+      - name: Verify package and Teams callback contract
         run: |
-          node --test tests/download-bridge.test.cjs
-          chmod +x gradlew
-          ./gradlew testDebugUnitTest assembleRelease
-      - name: Bundle exact AAR
-        run: |
-          mkdir -p src/android/libs
-          cp .native-android/build/outputs/aar/OSInAppBrowserLib-release.aar src/android/libs/ioninappbrowser-android-2.0.3-mapp.1.aar
-          sha256sum src/android/libs/ioninappbrowser-android-2.0.3-mapp.1.aar
+          python3 tests/validate-package.py
+          node --test tests/teams-callbacks.test.cjs
+      - name: Install SDK
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Clean Android Cordova installation and build
         run: |
           npm install --global cordova@12
@@ -54,12 +38,6 @@ jobs:
           cordova platform add android@14.0.1
           cordova plugin add "$GITHUB_WORKSPACE"
           cordova build android --debug
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verified-android-aar
-          path: src/android/libs/ioninappbrowser-android-2.0.3-mapp.1.aar
-          if-no-files-found: error
-
   ios:
     runs-on: macos-latest
     steps:
@@ -81,8 +59,7 @@ jobs:
           xcodebuild -workspace platforms/ios/MAppBrowser.xcworkspace -scheme MAppBrowser \
             -sdk iphonesimulator -configuration Debug SWIFT_VERSION=5.0 \
             IPHONEOS_DEPLOYMENT_TARGET=13.0 CODE_SIGNING_ALLOWED=NO build
-
-  package:
+  tag:
     needs: [android, ios]
     runs-on: ubuntu-latest
     permissions:
@@ -90,27 +67,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
           fetch-depth: 0
-      - name: Verify branch has not moved
-        run: test "$(git rev-parse HEAD)" = "${{ github.sha }}"
-      - uses: actions/download-artifact@v4
-        with:
-          name: verified-android-aar
-          path: src/android/libs
-      - name: Validate all packaged source paths and metadata
-        run: python3 tests/validate-package.py
-      - name: Commit binary and create immutable release reference
+      - name: Tag the tested commit
         run: |
-          test -s src/android/libs/ioninappbrowser-android-2.0.3-mapp.1.aar
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/android/libs/ioninappbrowser-android-2.0.3-mapp.1.aar
-          git commit -m 'build: bundle validated M App Android AAR'
-          git push origin "HEAD:${GITHUB_REF_NAME}"
-          if git ls-remote --exit-code --tags origin refs/tags/2.1.1-mapp.1; then
+          if git ls-remote --exit-code --tags origin refs/tags/2.1.1-mapp.2; then
             echo 'Tag already exists; refusing to replace it.'
             exit 1
           fi
-          git tag 2.1.1-mapp.1
-          git push origin refs/tags/2.1.1-mapp.1
+          git tag 2.1.1-mapp.2 "$GITHUB_SHA"
+          git push origin refs/tags/2.1.1-mapp.2

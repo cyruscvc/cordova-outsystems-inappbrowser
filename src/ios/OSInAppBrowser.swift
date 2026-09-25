@@ -31,6 +31,7 @@ class OSInAppBrowser: CDVPlugin {
                 return self.send(error: .inputArgumentsIssue(target: target), for: command.callbackId)
             }
             
+            if self.routeInitialTeams(url, callbackId: command.callbackId) { return }
             delegateExternalBrowser(url, command.callbackId)
         }
     }
@@ -57,6 +58,7 @@ class OSInAppBrowser: CDVPlugin {
                 return self.send(error: .inputArgumentsIssue(target: target), for: command.callbackId)
             }
                         
+            if self.routeInitialTeams(url, callbackId: command.callbackId) { return }
             delegateSystemBrowser(url, argumentsModel.toSystemBrowserOptions())
         }
     }
@@ -100,6 +102,7 @@ class OSInAppBrowser: CDVPlugin {
                 return self.send(error: .inputArgumentsIssue(target: target), for: command.callbackId)
             }
 
+            if self.routeInitialTeams(url, callbackId: command.callbackId) { return }
             delegateWebView(url: url, options: argumentsModel.toWebViewOptions(), customHeaders: argumentsModel.customHeaders)
         }
     }
@@ -123,6 +126,28 @@ class OSInAppBrowser: CDVPlugin {
 }
 
 private extension OSInAppBrowser {
+    // Handle app destinations before constructing/presenting a browser. No WebView
+    // lifecycle event is emitted, and any existing browser/callback stays intact.
+    func routeInitialTeams(_ url: URL, callbackId: String) -> Bool {
+        guard url.scheme?.lowercased() == "msteams" else { return false }
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            guard UIApplication.shared.canOpenURL(url) else {
+                self.send(error: .failedToOpen(url: "Microsoft Teams", onTarget: .externalBrowser), for: callbackId)
+                return
+            }
+            UIApplication.shared.open(url, options: [:]) { [weak self] success in
+                guard let self else { return }
+                if success {
+                    self.sendSuccess(.success, for: callbackId, keepCallback: false)
+                } else {
+                    self.send(error: .failedToOpen(url: "Microsoft Teams", onTarget: .externalBrowser), for: callbackId)
+                }
+            }
+        }
+        return true
+    }
+
     // App handoff must not complete or invalidate the WebView event callback.
     func openTeams(_ url: URL) {
         DispatchQueue.main.async { [weak self] in
@@ -211,7 +236,7 @@ private extension OSInAppBrowser {
         }
     }
     
-    func sendSuccess(_ eventType: OSIABEventType? = nil, for callbackId: String, data: Any? = nil) {
+    func sendSuccess(_ eventType: OSIABEventType? = nil, for callbackId: String, data: Any? = nil, keepCallback: Bool = true) {
         let pluginResult: CDVPluginResult
         var dataToSend = [String: Any]()
 
@@ -227,7 +252,7 @@ private extension OSInAppBrowser {
         } else {
             pluginResult = .init(status: .ok)
         }
-        pluginResult.keepCallback = true
+        pluginResult.keepCallback = NSNumber(value: keepCallback)
         self.commandDelegate.send(pluginResult, callbackId: callbackId)
     }
     
