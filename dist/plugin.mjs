@@ -1,4 +1,4 @@
-import { require as require2 } from "cordova";
+import { require as require$1 } from "cordova";
 var ToolbarPosition = /* @__PURE__ */ ((ToolbarPosition2) => {
   ToolbarPosition2[ToolbarPosition2["TOP"] = 0] = "TOP";
   ToolbarPosition2[ToolbarPosition2["BOTTOM"] = 1] = "BOTTOM";
@@ -88,7 +88,7 @@ const DefaultSystemBrowserOptions = {
   android: DefaultAndroidSystemBrowserOptions,
   iOS: DefaultiOSSystemBrowserOptions
 };
-var exec = require2("cordova/exec");
+var exec = require$1("cordova/exec");
 function trigger(type, success, data, onbrowserClosed = void 0, onbrowserPageLoaded = void 0, onbrowserPageNavigationCompleted = void 0) {
   switch (type) {
     case CallbackEventType.SUCCESS:
@@ -112,17 +112,16 @@ function trigger(type, success, data, onbrowserClosed = void 0, onbrowserPageLoa
   }
 }
 var teamsMessageOrigins = [];
-  function setTeamsMessageOrigins(origins) {
-    if (!Array.isArray(origins) || origins.length > 10) throw new Error("Supply at most 10 exact HTTPS origins.");
-    teamsMessageOrigins = origins.map(function (value) {
-      if (typeof value !== "string") throw new Error("Invalid Teams message origin.");
-      var url = new URL(value);
-      if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash ||
-          url.pathname !== "/" || url.hostname.indexOf("*") >= 0) throw new Error("Use exact HTTPS origins, without paths, queries or wildcards.");
-      return url.origin;
-    });
-  }
-  function openInWebView(url, options, success, error, browserCallbacks, customHeaders) {
+function setTeamsMessageOrigins(origins) {
+  if (!Array.isArray(origins) || origins.length > 10) throw new Error("Supply at most 10 exact HTTPS origins.");
+  teamsMessageOrigins = origins.map(function(value) {
+    if (typeof value !== "string") throw new Error("Invalid Teams message origin.");
+    var url = new URL(value);
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || url.pathname !== "/" || url.hostname.indexOf("*") >= 0) throw new Error("Use exact HTTPS origins, without paths, queries or wildcards.");
+    return url.origin;
+  });
+}
+function openInWebView(url, options, success, error, browserCallbacks, customHeaders) {
   options = Object.assign({}, options || DefaultWebViewOptions);
   options.teamsMessageOrigins = (options.teamsMessageOrigins || teamsMessageOrigins).slice();
   let triggerCorrectCallback = function(result) {
@@ -173,4 +172,3 @@ export {
   iOSAnimation,
   iOSViewStyle
 };
-

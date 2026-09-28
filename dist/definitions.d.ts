@@ -102,4 +102,3 @@ export interface CallbackEvent {
     eventType: CallbackEventType;
     data: any;
 }
-
