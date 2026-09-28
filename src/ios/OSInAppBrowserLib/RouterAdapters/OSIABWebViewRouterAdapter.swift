@@ -46,6 +46,7 @@ public class OSIABWebViewRouterAdapter: NSObject, OSIABRouter {
             scrollViewBounces: options.allowOverScroll,
             customUserAgent: options.customUserAgent,
             backForwardNavigationGestures: options.allowsBackForwardNavigationGestures,
+            teamsMessageOrigins: options.teamsMessageOrigins,
             uiModel: options.toUIModel(),
             callbackHandler: callbackHandler
         )
@@ -159,3 +160,4 @@ private class OSIABWebView13Controller: UIHostingController<OSIABWebView13Wrappe
         })
     }
 }
+

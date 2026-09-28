@@ -14,6 +14,7 @@ data class OSInAppBrowserWebViewInputArguments(
     @SerializedName("leftToRight") val leftToRight: Boolean?,
     @SerializedName("showNavigationButtons") val showNavigationButtons: Boolean?,
     @SerializedName("customWebViewUserAgent") val customWebViewUserAgent: String?,
+    @SerializedName("teamsMessageOrigins") val teamsMessageOrigins: List<String>?,
     @SerializedName("android") val android: OSInAppBrowserWebViewAndroidOptions
 )
 
@@ -23,3 +24,4 @@ data class OSInAppBrowserWebViewAndroidOptions(
     @SerializedName("pauseMedia") val pauseMedia: Boolean?,
     @SerializedName("isIsolated") val isIsolated: Boolean?
 )
+

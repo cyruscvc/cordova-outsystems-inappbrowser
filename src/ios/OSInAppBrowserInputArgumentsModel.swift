@@ -30,6 +30,7 @@ class OSInAppBrowserInputArgumentsComplexModel: OSInAppBrowserInputArgumentsSimp
         let leftToRight: Bool?
         let showNavigationButtons: Bool?
         let customWebViewUserAgent: String?
+        let teamsMessageOrigins: [String]?
     }
     
     let options: Options
@@ -77,7 +78,8 @@ extension OSInAppBrowserInputArgumentsComplexModel {
             viewStyle: self.options.iOS.viewStyle ?? .defaultValue,
             animationEffect: self.options.iOS.animationEffect ?? .defaultValue,
             customUserAgent: self.options.customWebViewUserAgent,
-            allowsBackForwardNavigationGestures: self.options.iOS.allowsBackForwardNavigationGestures ?? true
+            allowsBackForwardNavigationGestures: self.options.iOS.allowsBackForwardNavigationGestures ?? true,
+            teamsMessageOrigins: self.options.teamsMessageOrigins ?? []
         )
     }
 }
@@ -86,3 +88,4 @@ extension OSIABAnimationEffect: Decodable {}
 extension OSIABDismissStyle: Decodable {}
 extension OSIABToolbarPosition: Decodable {}
 extension OSIABViewStyle: Decodable {}
+

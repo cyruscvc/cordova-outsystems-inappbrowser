@@ -37,3 +37,4 @@ for (const method of ['openInWebView', 'openInSystemBrowser']) {
     calls[0][1](error); assert.equal(received, error);
   });
 }
+

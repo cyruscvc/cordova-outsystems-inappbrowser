@@ -32,6 +32,7 @@ public class OSIABWebViewOptions: OSIABOptions {
     let customUserAgent: String?
     /// Indicates if swipe gestures for navigating backward and forward in the WebView history are enabled.
     let allowsBackForwardNavigationGestures: Bool
+    let teamsMessageOrigins: [String]
     
     /// Constructor method.
     /// - Parameters:
@@ -69,7 +70,8 @@ public class OSIABWebViewOptions: OSIABOptions {
         viewStyle: OSIABViewStyle = .defaultValue, 
         animationEffect: OSIABAnimationEffect = .defaultValue,
         customUserAgent: String? = nil,
-        allowsBackForwardNavigationGestures: Bool = true
+        allowsBackForwardNavigationGestures: Bool = true,
+        teamsMessageOrigins: [String] = []
     ) {
         self.showURL = showURL
         self.showToolbar = showToolbar
@@ -86,6 +88,7 @@ public class OSIABWebViewOptions: OSIABOptions {
         self.surpressIncrementalRendering = surpressIncrementalRendering
         self.customUserAgent = customUserAgent
         self.allowsBackForwardNavigationGestures = allowsBackForwardNavigationGestures
+        self.teamsMessageOrigins = teamsMessageOrigins
         super.init(viewStyle: viewStyle, animationEffect: animationEffect)
     }
 }
@@ -97,3 +100,4 @@ extension OSIABWebViewOptions {
         self.mediaPlaybackRequiresUserAction ? .all : []
     }
 }
+

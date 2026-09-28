@@ -37,6 +37,7 @@ export type PluginError = {
 }
 
 export interface WebViewOptions {
+    teamsMessageOrigins?: string[];
   showURL: boolean;
   showToolbar: boolean;
 
@@ -129,3 +130,4 @@ export interface CallbackEvent {
   eventType: CallbackEventType,
   data: any
 }
+

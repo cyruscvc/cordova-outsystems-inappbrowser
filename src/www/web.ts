@@ -27,8 +27,20 @@ function trigger(type: CallbackEventType, success: () => void, data?: any, onbro
   }
 }
 
-function openInWebView(url: string, options: WebViewOptions, success: () => void, error: (error: PluginError) => void, browserCallbacks?: BrowserCallbacks, customHeaders?: { [key: string]: string } | null): void {
-  options = options || DefaultWebViewOptions;
+var teamsMessageOrigins: string[] = [];
+  function setTeamsMessageOrigins(origins: string[]) {
+    if (!Array.isArray(origins) || origins.length > 10) throw new Error("Supply at most 10 exact HTTPS origins.");
+    teamsMessageOrigins = origins.map(function (value) {
+      if (typeof value !== "string") throw new Error("Invalid Teams message origin.");
+      var url = new URL(value);
+      if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash ||
+          url.pathname !== "/" || url.hostname.indexOf("*") >= 0) throw new Error("Use exact HTTPS origins, without paths, queries or wildcards.");
+      return url.origin;
+    });
+  }
+  function openInWebView(url: string, options: WebViewOptions, success: () => void, error: (error: PluginError) => void, browserCallbacks?: BrowserCallbacks, customHeaders?: { [key: string]: string } | null): void {
+  options = Object.assign({}, options || DefaultWebViewOptions);
+  options.teamsMessageOrigins = (options.teamsMessageOrigins || teamsMessageOrigins).slice();
   
   let triggerCorrectCallback = function (result: string) {
     const parsedResult: CallbackEvent = JSON.parse(result);
@@ -70,8 +82,10 @@ function close(success: () => void, error: (error: PluginError) => void): void {
 }
 
 module.exports = {
+  setTeamsMessageOrigins,
   openInWebView,
   openInExternalBrowser,
   openInSystemBrowser,
   close
 }
+

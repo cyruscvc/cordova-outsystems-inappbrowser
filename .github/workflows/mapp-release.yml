@@ -9,10 +9,21 @@ concurrency:
   group: mapp-plugin-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  android:
+  bundle:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: cyruscvc/OSInAppBrowserLib-Android
+          ref: 96dcba6dedc2553ab1576c3a45b0d27e85fdd9dc
+          path: .native-android
       - uses: actions/setup-java@v4
         with:
           distribution: zulu
@@ -23,10 +34,48 @@ jobs:
       - uses: android-actions/setup-android@v4
         with:
           packages: ''
-      - name: Verify package and Teams callback contract
+      - name: Build pinned native Android library and test screenshot policy
         run: |
+          sdkmanager 'platforms;android-36'
+          cd .native-android
+          chmod +x gradlew
+          ./gradlew assembleRelease testDebugUnitTest --tests '*OSIABWindowPrivacyTests'
+      - name: Bundle AAR and verify package
+        run: |
+          cp .native-android/build/outputs/aar/OSInAppBrowserLib-release.aar src/android/libs/ioninappbrowser-android-2.0.3-mapp.3.aar
+          cmp src/teams/osiab-teams.js .native-android/src/main/assets/osiab-teams.js
+          npm ci --ignore-scripts
+          npm run build
           python3 tests/validate-package.py
-          node --test tests/teams-callbacks.test.cjs
+          node --test tests/*.test.cjs
+      - name: Commit generated AAR and JS
+        id: commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/android/libs/ioninappbrowser-android-2.0.3-mapp.3.aar dist
+          if ! git diff --cached --quiet; then
+            git commit -m 'build: bundle validated Teams message bridge and secure window inheritance'
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  android:
+    needs: bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bundle.outputs.commit }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: ''
       - name: Install SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Clean Android Cordova installation and build
@@ -39,9 +88,12 @@ jobs:
           cordova plugin add "$GITHUB_WORKSPACE"
           cordova build android --debug
   ios:
+    needs: bundle
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bundle.outputs.commit }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -52,7 +104,7 @@ jobs:
           cd /tmp/mapp-ios
           cordova platform add ios@7.1.1
           cordova plugin add "$GITHUB_WORKSPACE"
-          /usr/libexec/PlistBuddy -c 'Print :LSApplicationQueriesSchemes' platforms/ios/MAppBrowser/MAppBrowser-Info.plist
+          python3 -c 'import pathlib; assert list(pathlib.Path("platforms/ios").rglob("osiab-teams.js"))'
       - name: Compile iOS simulator app
         run: |
           cd /tmp/mapp-ios
@@ -60,19 +112,20 @@ jobs:
             -sdk iphonesimulator -configuration Debug SWIFT_VERSION=5.0 \
             IPHONEOS_DEPLOYMENT_TARGET=13.0 CODE_SIGNING_ALLOWED=NO build
   tag:
-    needs: [android, ios]
+    needs: [bundle, android, ios]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.bundle.outputs.commit }}
           fetch-depth: 0
       - name: Tag the tested commit
         run: |
-          if git ls-remote --exit-code --tags origin refs/tags/2.1.1-mapp.2; then
+          if git ls-remote --exit-code --tags origin refs/tags/2.1.1-mapp.3; then
             echo 'Tag already exists; refusing to replace it.'
             exit 1
           fi
-          git tag 2.1.1-mapp.2 "$GITHUB_SHA"
-          git push origin refs/tags/2.1.1-mapp.2
+          git tag 2.1.1-mapp.3 "$(git rev-parse HEAD)"
+          git push origin refs/tags/2.1.1-mapp.3

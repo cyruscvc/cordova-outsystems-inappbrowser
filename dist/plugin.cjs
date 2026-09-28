@@ -113,8 +113,20 @@ function trigger(type, success, data, onbrowserClosed = void 0, onbrowserPageLoa
       break;
   }
 }
-function openInWebView(url, options, success, error, browserCallbacks, customHeaders) {
-  options = options || DefaultWebViewOptions;
+var teamsMessageOrigins = [];
+  function setTeamsMessageOrigins(origins) {
+    if (!Array.isArray(origins) || origins.length > 10) throw new Error("Supply at most 10 exact HTTPS origins.");
+    teamsMessageOrigins = origins.map(function (value) {
+      if (typeof value !== "string") throw new Error("Invalid Teams message origin.");
+      var url = new URL(value);
+      if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash ||
+          url.pathname !== "/" || url.hostname.indexOf("*") >= 0) throw new Error("Use exact HTTPS origins, without paths, queries or wildcards.");
+      return url.origin;
+    });
+  }
+  function openInWebView(url, options, success, error, browserCallbacks, customHeaders) {
+  options = Object.assign({}, options || DefaultWebViewOptions);
+  options.teamsMessageOrigins = (options.teamsMessageOrigins || teamsMessageOrigins).slice();
   let triggerCorrectCallback = function(result) {
     const parsedResult = JSON.parse(result);
     if (parsedResult) {
@@ -148,6 +160,7 @@ function close(success, error) {
   exec(success, error, "OSInAppBrowser", "close", [{}]);
 }
 module.exports = {
+  setTeamsMessageOrigins,
   openInWebView,
   openInExternalBrowser,
   openInSystemBrowser,
@@ -160,3 +173,4 @@ exports.DismissStyle = DismissStyle;
 exports.ToolbarPosition = ToolbarPosition;
 exports.iOSAnimation = iOSAnimation;
 exports.iOSViewStyle = iOSViewStyle;
+

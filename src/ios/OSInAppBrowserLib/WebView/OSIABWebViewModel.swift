@@ -41,6 +41,9 @@ class OSIABWebViewModel: NSObject, ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private var downloadDestinations = [ObjectIdentifier: URL]()
+    private var teamsMessageBridge: OSIABTeamsMessageBridge?
+
+    deinit { teamsMessageBridge?.invalidate() }
     
     /// Constructor method.
     /// - Parameters:
@@ -57,6 +60,7 @@ class OSIABWebViewModel: NSObject, ObservableObject {
         scrollViewBounces: Bool = true,
         customUserAgent: String? = nil,
         backForwardNavigationGestures: Bool = true,
+        teamsMessageOrigins: [String] = [],
         uiModel: OSIABWebViewUIModel,
         callbackHandler: OSIABWebViewCallbackHandler
     ) {
@@ -77,6 +81,9 @@ class OSIABWebViewModel: NSObject, ObservableObject {
         self.webView.customUserAgent = customUserAgent
         self.webView.navigationDelegate = self
         self.webView.uiDelegate = self
+        self.teamsMessageBridge = OSIABTeamsMessageBridge(webView: webView, origins: teamsMessageOrigins) { [weak self] url in
+            self?.callbackHandler.onDelegateURL(url)
+        }
 #if DEBUG
         if #available(iOS 16.4, *) {
             self.webView.isInspectable = true
@@ -100,6 +107,7 @@ class OSIABWebViewModel: NSObject, ObservableObject {
         scrollViewBounces: Bool = true,
         customUserAgent: String? = nil,
         backForwardNavigationGestures: Bool = true,
+        teamsMessageOrigins: [String] = [],
         uiModel: OSIABWebViewUIModel,
         callbackHandler: OSIABWebViewCallbackHandler
     ) {
@@ -110,6 +118,7 @@ class OSIABWebViewModel: NSObject, ObservableObject {
             scrollViewBounces: scrollViewBounces,
             customUserAgent: customUserAgent,
             backForwardNavigationGestures: backForwardNavigationGestures,
+            teamsMessageOrigins: teamsMessageOrigins,
             uiModel: uiModel,
             callbackHandler: callbackHandler
         )
@@ -496,3 +505,4 @@ extension OSIABWebViewModel: WKUIDelegate {
         callbackHandler.onDelegateAlertController(result)
     }
 }
+

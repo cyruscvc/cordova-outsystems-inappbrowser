@@ -274,7 +274,8 @@ class OSInAppBrowser: CordovaPlugin() {
                 it.android.hardwareBack ?: true,
                 it.android.pauseMedia ?: true,
                 it.customWebViewUserAgent,
-                it.android.isIsolated ?: true
+                it.android.isIsolated ?: true,
+                it.teamsMessageOrigins ?: emptyList()
             )
         }
     }
@@ -348,3 +349,4 @@ enum class OSIABEventType(val value: Int) {
     BROWSER_PAGE_LOADED(3),
     BROWSER_PAGE_NAVIGATION_COMPLETED(4)
 }
+
