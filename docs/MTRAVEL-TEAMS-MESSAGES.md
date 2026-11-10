@@ -1,6 +1,6 @@
-# M-Travel Teams chat messages — 2.1.1-mapp.3
+# M-Travel Teams audio calls — 2.1.1-mapp.4
 
-Based on the official Cordova 2.1.1 baseline, including its upload fix and the existing M App fork changes. This addition handles Teams chat messages on iOS and Android. It does not add a download event handler or claim to fix the reported download issues.
+The existing M-Travel message opens a one-to-one Teams audio call on iOS and Android. Teams prompts the employee to confirm before placing the call.
 
 ## M-Travel sender
 
@@ -22,7 +22,7 @@ Add a synchronous JavaScript node immediately before the existing `OpenInWebView
 ```javascript
 var plugin = cordova.plugins.OSInAppBrowser;
 if (typeof plugin.setTeamsMessageOrigins !== "function") {
-  throw new Error("Install the M App native build containing 2.1.1-mapp.3.");
+  throw new Error("Install the M App native build containing the Teams message bridge.");
 }
 plugin.setTeamsMessageOrigins([new URL($parameters.MTravelUrl).origin]);
 ```
@@ -35,7 +35,7 @@ Use an environment-specific Site Property / configuration value for `MTravelUrl`
 
 `setTeamsMessageOrigins` affects subsequent `OpenInWebView` calls, not a browser already open. The default list is empty (disabled). To disable for subsequent opens, call `setTeamsMessageOrigins([])`. A direct JavaScript caller may instead pass `options.teamsMessageOrigins` to one `openInWebView` call. Existing options, user agent and lifecycle callbacks remain intact.
 
-No separate OutSystems Teams event handler is needed for this scoped version: the native plugin validates the message and opens Teams chat itself. It preserves the M-Travel WebView and uses the existing iOS Teams launcher or an explicit Android Teams Intent. Teams launch failure shows an alert/toast; `postMessage` is fire-and-forget and has no completion reply in this version. Normal lifecycle events do not claim that a Teams conversation was created.
+The native plugin validates the message and opens the Teams audio-call confirmation while preserving the M-Travel WebView. It uses the existing iOS Teams launcher or an explicit Android Teams Intent. Teams launch failure shows an alert or toast. The `postMessage` request is fire-and-forget.
 
 ## Extensibility
 
@@ -44,7 +44,7 @@ Use this only after the tag exists and native validation passes:
 ```json
 {
   "plugin": {
-    "url": "https://github.com/cyruscvc/cordova-outsystems-inappbrowser#2.1.1-mapp.3"
+    "url": "https://github.com/cyruscvc/cordova-outsystems-inappbrowser#2.1.1-mapp.4"
   },
   "metadata": {
     "mabs-min": "10.0.0",
@@ -77,4 +77,4 @@ This corrects the identified Android process-boundary gap. No iOS screenshot fix
 
 CI builds the pinned Android library and bundles the AAR, checks the JS receiver/host configuration and existing Teams callback tests, and compiles clean Cordova Android and iOS simulator apps. This does not establish real-device Teams availability or navigation behavior.
 
-Device acceptance: open staging using `?mobile=1`, trigger the real M-Travel chat button, verify the recipient in Teams, return to the same page, repeat once, and test Teams unavailable. Verify events from another origin/frame and malformed payloads do not launch anything. Confirm ordinary uploads still work. Repeat with the approved production origin before rollout.
+For device acceptance, open staging using `?mobile=1` and tap the M-Travel call button. Verify the recipient and audio-call confirmation in Teams, then return to the same page. Repeat once and test with Teams unavailable. Verify events from another origin or frame and malformed payloads are ignored. Confirm ordinary uploads still work. Repeat with the approved production origin before rollout.

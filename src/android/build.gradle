@@ -10,7 +10,7 @@ buildscript {
 }
 
 dependencies{
-    implementation files("libs/ioninappbrowser-android-2.0.3-mapp.3.aar")
+    implementation files("libs/ioninappbrowser-android-2.0.3-mapp.4.aar")
     implementation("androidx.webkit:webkit:1.12.1")
 
     implementation("androidx.browser:browser:1.8.0")

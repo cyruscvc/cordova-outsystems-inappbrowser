@@ -5,7 +5,7 @@ import WebKit
 final class OSIABTeamsMessageBridge: NSObject, WKScriptMessageHandler {
     private weak var webView: WKWebView?
     private let allowed: Set<String>
-    private let openChat: (URL) -> Void
+    private let openCall: (URL) -> Void
     private var lastLaunch: TimeInterval = -1.5
 
     private static func origin(_ url: URL?) -> String? {
@@ -16,9 +16,9 @@ final class OSIABTeamsMessageBridge: NSObject, WKScriptMessageHandler {
         return "https://\(host)" + (port == 443 ? "" : ":\(port)")
     }
 
-    init(webView: WKWebView, origins: [String], openChat: @escaping (URL) -> Void) {
+    init(webView: WKWebView, origins: [String], openCall: @escaping (URL) -> Void) {
         self.webView = webView
-        self.openChat = openChat
+        self.openCall = openCall
         self.allowed = Set(origins.prefix(10).compactMap { raw in
             guard let normalized = Self.origin(URL(string: raw)), raw == normalized || raw == normalized + "/" else { return nil }
             return normalized
@@ -60,8 +60,8 @@ final class OSIABTeamsMessageBridge: NSObject, WKScriptMessageHandler {
         guard now - lastLaunch >= 1.5 else { return }
         let unreserved = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
         guard let encoded = email.addingPercentEncoding(withAllowedCharacters: unreserved),
-              let url = URL(string: "msteams://teams.microsoft.com/l/chat/0/0?users=" + encoded) else { return }
+              let url = URL(string: "msteams://teams.microsoft.com/l/call/0/0?users=" + encoded) else { return }
         lastLaunch = now
-        openChat(url)
+        openCall(url)
     }
 }

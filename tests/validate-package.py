@@ -1,4 +1,5 @@
 """Static validation for this Git-distributed replacement (not a Resource ZIP)."""
+import io
 import json
 import pathlib
 import xml.etree.ElementTree as ET
@@ -16,10 +17,12 @@ for kind in ('source-file', 'js-module', 'hook', 'resource-file'):
         assert (root / item.attrib['src']).is_file(), item.attrib['src']
 assert 'msteams' in (root / 'plugin.xml').read_text()
 assert 'OSInAppBrowserLib-iOS' not in (root / 'Package.swift').read_text()
-aar = root / 'src/android/libs/ioninappbrowser-android-2.0.3-mapp.3.aar'
+aar = root / 'src/android/libs/ioninappbrowser-android-2.0.3-mapp.4.aar'
 with zipfile.ZipFile(aar) as archive:
     assert 'assets/osiab-download.js' in archive.namelist()
-    assert 'assets/osiab-teams.js' in archive.namelist()
-    assert 'classes.jar' in archive.namelist()
-print('PASS: identity, versions, source manifest, Teams scheme, vendored iOS, download bridge AAR')
+    assert archive.read('assets/osiab-teams.js') == (root / 'src/teams/osiab-teams.js').read_bytes()
+    with zipfile.ZipFile(io.BytesIO(archive.read('classes.jar'))) as classes:
+        bridge = classes.read('com/outsystems/plugins/inappbrowser/osinappbrowserlib/views/OSIABTeamsMessageBridge.class')
+        assert b'/l/call/0/0' in bridge, 'Android AAR must contain the Teams audio-call bridge'
+print('PASS: identity, versions, source manifest, Teams scheme, vendored iOS, download and Teams audio-call AAR')
 

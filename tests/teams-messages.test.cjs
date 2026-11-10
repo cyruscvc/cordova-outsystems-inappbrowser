@@ -19,7 +19,7 @@ function page(ios = false, location = origin, iframe = false) {
   return {calls,window,listeners,install,advance:()=>now+=2000,
     send:(data,extra={})=>listeners.forEach(fn=>fn({data,source:window,origin,...extra}))};
 }
-for (const ios of [false,true]) test(`agreed parent/self event forwards chat once on ${ios?'iOS':'Android'}`,()=>{
+for (const ios of [false,true]) test(`agreed parent/self event forwards the Teams request once on ${ios?'iOS':'Android'}`,()=>{
   const p=page(ios); p.send({type:'cbt:open-teams',email:'employee+travel@company.com',notificationType:'ignored'});
   assert.deepEqual(p.calls,[{type:'cbt:open-teams',email:'employee+travel@company.com'}]);
   p.send({type:'cbt:open-teams',email:'employee+travel@company.com'}); assert.equal(p.calls.length,1);
